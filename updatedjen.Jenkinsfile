@@ -64,30 +64,22 @@ pipeline {
         }
     }
     post {
-        always {
-            emailext (
-                subject: "${JOB_NAME} ${BUILD_STATUS}: Build #${BUILD_NUMBER}",
-                body: """<p>Build Completed - ${BUILD_STATUS}.</p>
-                         <p>See attached logs for more details.</p>""",
-                attachmentsPattern: "${LOG_DIR}/*.log",
-                recipientProviders: [[$class: 'DevelopersRecipientProvider']]
-            )
-        }
         success {
-            emailext (
-                to: 'jnaneshwarib63@gmail.com',
+                mail to: 'jnaneshwarib63@gmail.com',
                 subject: "Pipeline Success",
                 body: "The pipeline completed successfully.",
                 attachmentsPattern: "${LOG_DIR}/*.log"
-            )
-        }
+
+    }
         failure {
-            emailext (
-                to: 'jnaneshwarib63@gmail.com',
+            
+               mail to: 'jnaneshwarib63@gmail.com',
                 subject: "Pipeline Failure",
                 body: "The pipeline failed. Please check the logs.",
                 attachmentsPattern: "${LOG_DIR}/*.log"
-            )
+            
+        }
+        
         }
     }
 }
