@@ -1,74 +1,97 @@
-
-              pipeline {
+pipeline {
     agent any
+    environment {
+        LOG_DIR = "${WORKSPACE}/logs"  // Sets the directory for logs within the Jenkins workspace
+    }
     stages {
+        stage('Prepare') {
+            steps {
+                echo "Preparing the environment..."
+                sh "mkdir -p ${LOG_DIR}"  // Creates the log directory
+            }
+        }
         stage('Build') {
             steps {
+                echo "Building the project using Maven..."
                 script {
-                    // Assuming use of Maven for building
-                    sh "mvn clean package > build.log"
+                    sh "mvn clean package > ${LOG_DIR}/build.log"  // Building the project with Maven and logging the output
                 }
-                archiveArtifacts artifacts: 'build.log', onlyIfSuccessful: true
+                archiveArtifacts artifacts: "${LOG_DIR}/build.log", onlyIfSuccessful: true
             }
         }
         stage('Unit and Integration Tests') {
             steps {
+                echo "Running unit and integration tests..."
                 script {
-                    // Assuming JUnit tests are run with Maven
-                    sh "mvn test > test.log"
+                    sh "mvn test > ${LOG_DIR}/test.log"  // Running tests using Maven and logging the output
                 }
-                archiveArtifacts artifacts: 'test.log', onlyIfSuccessful: true
+                archiveArtifacts artifacts: "${LOG_DIR}/test.log", onlyIfSuccessful: true
             }
         }
         stage('Code Analysis') {
             steps {
+                echo "Analyzing code with SonarQube..."
                 script {
-                    // Assuming SonarQube analysis
-                    sh "mvn sonar:sonar > sonar.log"
+                    sh "mvn sonar:sonar > ${LOG_DIR}/sonar.log"  // Integrating SonarQube for code quality checks
                 }
-                archiveArtifacts artifacts: 'sonar.log', onlyIfSuccessful: true
+                archiveArtifacts artifacts: "${LOG_DIR}/sonar.log", onlyIfSuccessful: true
             }
         }
         stage('Security Scan') {
             steps {
+                echo "Performing security scan..."
                 script {
-                    // Assuming OWASP ZAP is used for security scanning
-                    sh "./zap.sh > security.log"
+                    // Example command; replace with your actual security scan command
+                    sh "./security-scan.sh > ${LOG_DIR}/security.log"
                 }
-                archiveArtifacts artifacts: 'security.log', onlyIfSuccessful: true
+                archiveArtifacts artifacts: "${LOG_DIR}/security.log", onlyIfSuccessful: true
             }
         }
         stage('Deploy to Staging') {
             steps {
-                echo "Deploying to AWS EC2 Staging..."
-                // AWS CLI commands to deploy
+                echo "Deploying application to staging environment..."
+                script {
+                    // Example AWS CLI command to deploy; replace with your actual deployment script
+                    sh "aws s3 cp target/myapp.war s3://my-staging-bucket/myapp.war"
+                }
             }
         }
         stage('Integration Tests on Staging') {
             steps {
                 echo "Running integration tests in staging environment..."
-                // Testing commands here
+                script {
+                    // Example integration testing command; replace with your actual test command
+                    sh "curl -s http://staging.myapp.com/health > ${LOG_DIR}/staging-test.log"
+                }
+                archiveArtifacts artifacts: "${LOG_DIR}/staging-test.log", onlyIfSuccessful: true
             }
         }
         stage('Deploy to Production') {
             steps {
-                echo "Deploying to AWS EC2 Production..."
-                // AWS CLI commands to deploy
+                echo "Deploying application to production environment..."
+                script {
+                    // Example AWS CLI command to deploy; replace with your actual deployment script
+                    sh "aws s3 cp s3://my-staging-bucket/myapp.war s3://my-production-bucket/myapp.war"
+                }
             }
         }
     }
     post {
         success {
-            mail to: "jnaneshwarib63@gmail.com",
+            emailext(
+                recipients: 'jnaneshwarib63@gmail.com',
                 subject: "Pipeline Success",
-                body: "The pipeline completed successfully.",
-                attachmentsPattern: '**/*.log'
+                body: "The pipeline completed successfully. See attached logs for more details.",
+                attachmentsPattern: "${LOG_DIR}/*.log"
+            )
         }
         failure {
-            mail to: "jnaneshwarib63@gmail.com",
+            emailext(
+                recipients: 'jnaneshwarib63@gmail.com',
                 subject: "Pipeline Failure",
-                body: "The pipeline failed. Please check the logs.",
-                attachmentsPattern: '**/*.log'
+                body: "The pipeline failed. Please see the attached logs for more details.",
+                attachmentsPattern: "${LOG_DIR}/*.log"
+            )
         }
     }
 }
