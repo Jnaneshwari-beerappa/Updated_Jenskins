@@ -79,7 +79,7 @@ pipeline {
     post {
         success {
             emailext(
-                recipients: 'jnaneshwarib63@gmail.com',
+                to: 'jnaneshwarib63@gmail.com',
                 subject: "Pipeline Success",
                 body: "The pipeline completed successfully. See attached logs for more details.",
                 attachmentsPattern: "${LOG_DIR}/*.log"
@@ -87,7 +87,7 @@ pipeline {
         }
         failure {
             emailext(
-                recipients: 'jnaneshwarib63@gmail.com',
+                to: 'jnaneshwarib63@gmail.com',
                 subject: "Pipeline Failure",
                 body: "The pipeline failed. Please see the attached logs for more details.",
                 attachmentsPattern: "${LOG_DIR}/*.log"
