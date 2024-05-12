@@ -1,67 +1,84 @@
 pipeline {
     agent any
-
+    environment {
+        LOG_DIR = "${WORKSPACE}/logs"
+    }
     stages {
+        stage('Setup Log Directory') {
+            steps {
+                sh "mkdir -p ${LOG_DIR}"
+            }
+        }
         stage('Build') {
             steps {
-                echo "Building the project using Maven."
-                // Maven commands to build the project
-            }
-            tools {
-                maven 'Maven 3.6.3'
+                script {
+                    sh "mvn clean package > ${LOG_DIR}/build.log 2>&1"
+                }
             }
         }
-        
         stage('Unit and Integration Tests') {
             steps {
-                echo "Running unit tests with JUnit and integration tests with Selenium."
-                // Commands for JUnit and Selenium would go here
+                script {
+                    sh "mvn test > ${LOG_DIR}/test_results.log 2>&1"
+                }
             }
         }
-        
         stage('Code Analysis') {
             steps {
-                echo "Analyzing code with SonarQube."
-                // SonarQube analysis commands here
+                script {
+                    sh "mvn sonar:sonar > ${LOG_DIR}/code_analysis.log 2>&1"
+                }
             }
         }
-        
         stage('Security Scan') {
             steps {
-                echo "Conducting security scan with OWASP ZAP."
-                // OWASP ZAP security scan commands here
+                script {
+                    sh "mvn org.owasp:dependency-check-maven:check > ${LOG_DIR}/security_scan.log 2>&1"
+                }
             }
         }
-        
         stage('Deploy to Staging') {
             steps {
-                echo "Deploying to AWS EC2 staging environment."
-                // AWS CLI commands for deployment to staging
+                script {
+                    // Example deployment command
+                    sh "echo 'Deploying to Staging Environment' > ${LOG_DIR}/staging_deploy.log 2>&1"
+                    // Assume deployment commands here
+                }
             }
         }
-        
         stage('Integration Tests on Staging') {
             steps {
-                echo "Running integration tests in the staging environment."
-                // Commands for running integration tests on staging
+                script {
+                    sh "echo 'Running Integration Tests on Staging' > ${LOG_DIR}/staging_integration_tests.log 2>&1"
+                    // Integration tests commands here
+                }
             }
         }
-        
         stage('Deploy to Production') {
             steps {
-                echo "Deploying to AWS EC2 production server."
-                // AWS CLI commands for deployment to production
+                script {
+                    sh "echo 'Deploying to Production Environment' > ${LOG_DIR}/production_deploy.log 2>&1"
+                    // Assume deployment commands here
+                }
             }
         }
     }
-    
     post {
+        always {
+            emailext (
+                subject: "${JOB_NAME} ${BUILD_STATUS}: Build #${BUILD_NUMBER}",
+                body: """<p>Build Completed - ${BUILD_STATUS}.</p>
+                         <p>See attached logs for more details.</p>""",
+                attachmentsPattern: "${LOG_DIR}/*.log",
+                recipientProviders: [[$class: 'DevelopersRecipientProvider']]
+            )
+        }
         success {
             emailext (
                 recipients: 'jnaneshwarib63@gmail.com',
                 subject: "Pipeline Success",
                 body: "The pipeline completed successfully.",
-                attachmentsPattern: '**/build-outputs/**/*.log'  // Match log files in build-outputs directories
+                attachmentsPattern: "${LOG_DIR}/*.log"
             )
         }
         failure {
@@ -69,7 +86,7 @@ pipeline {
                 recipients: 'jnaneshwarib63@gmail.com',
                 subject: "Pipeline Failure",
                 body: "The pipeline failed. Please check the logs.",
-                attachmentsPattern: '**/build-outputs/**/*.log'  // Match log files in build-outputs directories
+                attachmentsPattern: "${LOG_DIR}/*.log"
             )
         }
     }
