@@ -22,7 +22,7 @@ pipeline {
                         subject: 'CI Pipeline: Testing Stage Completed',
                         body: 'The Testing stage has completed. Please find attached the logs for more details.',
                         attachLog: true,
-                        recipient: 'jnaneshwarib63@gmail.com'
+                        to: 'jnaneshwarib63@gmail.com'
                     )
                 }
             }
@@ -49,7 +49,7 @@ pipeline {
                         subject: 'CI Pipeline: Security Scan Stage Completed',
                         body: 'The Security Scan stage has completed. Please find attached the logs for more details.',
                         attachLog: true,
-                        recipient: 'jnaneshwarib63@gmail.com'
+                        to: 'jnaneshwarib63@gmail.com'
                     )
                 }
             }
@@ -83,7 +83,7 @@ pipeline {
                         subject: 'CI Pipeline: Production Deployment Completed',
                         body: 'The application has been successfully deployed to production.',
                         attachLog: true,
-                        recipient: 'jnaneshwarib63@gmail.com'
+                        to: 'jnaneshwarib63@gmail.com'
                     )
                 }
             }
@@ -95,7 +95,7 @@ pipeline {
                 subject: 'CI Pipeline: Failure Alert',
                 body: 'One or more stages in the pipeline have failed. Please check the Jenkins logs for more details.',
                 attachLog: true,
-                recipient: 'jnaneshwarib63@gmail.com'
+                to: 'jnaneshwarib63@gmail.com'
             )
         }
     }
